@@ -2,22 +2,27 @@
 #define _WATER_CLIENT_H
 
 #include "Arduino.h"
-#include <optional>
+#include "WString.h"
+#include "ModbusRTUSlave.h"
+#include <option.h>
+
+#define SEND_BUFFER_SIZE_BYTES 16
+#define RECEIVE_BUFFER_SIZE_BYTES 10
 
 class WaterClient
 {
 public:
 
-	typedef UserId	uint32_t;
-	typedef Pin		uint64_t;
-	typedef RfidId	uint64_t;
-	typedef Credit	uint32_t;
+	typedef uint32_t UserId;
+	typedef uint64_t Pin;
+	typedef uint64_t RfidId	;
+	typedef uint32_t Credit	;
 
 	struct LoginReply
 	{
-		enum class Status
+		enum class Status : byte
 		{
-			SUCCESS,
+			SUCCESS = 1,
 			INVALID_ID, // invalid UserId or invalid RfidId
 			INVALID_PIN,
 			TIMEOUT, // could not connect to server within connectTimeoutSec period
@@ -25,11 +30,10 @@ public:
 		};
 
 		Status status;
-		std::optional<Credit> creditAvail; // empty iff non-success status
+		Option<Credit> creditAvail; // empty iff non-success status
 	};
 
-	WaterClient(HardwareSerial*, uint8_t slaveNum, uint32_t connectTimeoutSec);
-	~WaterClient();
+	WaterClient(uint8_t controlPinNumber, HardwareSerial*, uint8_t slaveNum, uint32_t connectTimeoutSec);
 
 	// In every 'loop' call client code should call one of the following methods.
 	// If client does not need to log in or log out currently, then keepCommunicationAlive should be repeated in every 'loop' call.
@@ -44,12 +48,16 @@ public:
 
 	// In case when one has string instead of RfidId he may call below converter function.
 	// If strng contains valid hex number, then return value will be non-empty, otherwise it will be an empty option.
-	static std::optional<RfidId> CreateRfidIdFromStringInHex(std::string const &);
+	static Option<RfidId> CreateRfidIdFromStringInHex(String const &);
+
+	typedef uint8_t RequestSeqNum; // used internally by class only
 
 private:
 
-	// ...
-
+	ModbusRTUSlave rtu;
+	RequestSeqNum nextRequestId;
+	byte sendBuffer[SEND_BUFFER_SIZE_BYTES];
+	byte receiveBuffer[RECEIVE_BUFFER_SIZE_BYTES];
 };
 
 #endif

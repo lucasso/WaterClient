@@ -9,6 +9,9 @@
 #define SEND_BUFFER_SIZE_BYTES 16
 #define RECEIVE_BUFFER_SIZE_BYTES 10
 
+// uncomment below line to have debug messages logged on standard arduino Serial
+#define WATER_DEBUG
+
 class WaterClient
 {
 public:
@@ -54,10 +57,39 @@ public:
 
 private:
 
+	template <typename RequestTypeT, typename RequestImplT>
+	LoginReply loginImpl(RequestTypeT, RequestImplT const &, Credit);
+
 	ModbusRTUSlave rtu;
 	RequestSeqNum nextRequestId;
 	byte sendBuffer[SEND_BUFFER_SIZE_BYTES];
 	byte receiveBuffer[RECEIVE_BUFFER_SIZE_BYTES];
+	uint32_t timeoutSec;
+
+	struct LoginByUserRequest
+	{
+		UserId userId;
+		Pin pin;
+	};
+
+	struct LoginByRfidRequest
+	{
+		RfidId rfidId;
+	};
+
+	// only one of below options may be non-empty
+	Option<LoginByUserRequest> lastLoginByUser;
+	Option<LoginByRfidRequest> lastLoginByRfid;
+
+	union RequestImpl;
+	struct Request;
 };
+
+#ifdef WATER_DEBUG
+# define LOG(...) \
+	Serial.println(__VA_ARGS__)
+#else
+# define LOG(...)
+#endif
 
 #endif

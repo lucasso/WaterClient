@@ -17,7 +17,7 @@ public:
 	T getValue() const
 	{
 		if (this->exists) return this->value;
-		throw EmptyOptionException();
+		return T();
 	}
 
 	bool hasSome() const { return this->exists; }

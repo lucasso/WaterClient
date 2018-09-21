@@ -1,35 +1,7 @@
-#include "waterClient.h"
+#include "waterSharedTypes.h"
 
-enum class RequestType : byte
+namespace water
 {
-	LOGIN_BY_USER = 1,
-	LOGIN_BY_RFID = 2
-};
-
-union WaterClient::RequestImpl
-{
-	LoginByUserRequest loginByUser;
-	LoginByRfidRequest loginByRfid;
-};
-
-struct WaterClient::Request
-{
-	RequestSeqNum requestSeqNumAtBegin;
-	RequestType requestType;
-	RequestImpl impl;
-	Credit consumeCredit;
-	RequestSeqNum requestSeqNumAtEnd;
-};
-
-struct Reply
-{
-	WaterClient::RequestSeqNum replySeqNumAtBegin;
-	WaterClient::LoginReply impl;
-	WaterClient::RequestSeqNum replySeqNumAtEnd;
-};
-
-#define REQUEST_ADDRESS 101
-#define REPLY_ADDRESS 102
 
 WaterClient::WaterClient(uint8_t const controlPinNumber, HardwareSerial* hwSerial, uint8_t slaveNum, uint32_t connectTimeoutSec) :
 	rtu(slaveNum, hwSerial, controlPinNumber),
@@ -154,4 +126,4 @@ WaterClient::CreateRfidIdFromStringInHex(String const &)
 	return Option<WaterClient::RfidId>();
 }
 
-
+} // ns water

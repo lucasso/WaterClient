@@ -1,16 +1,30 @@
 #ifndef _WATER_CLIENT_H
 #define _WATER_CLIENT_H
 
+#ifndef _WATER_SERVER
 #include "Arduino.h"
 #include "WString.h"
 #include "ModbusRTUSlave.h"
-#include <option.h>
-
-#define SEND_BUFFER_SIZE_BYTES 16
-#define RECEIVE_BUFFER_SIZE_BYTES 10
 
 // uncomment below line to have debug messages logged on standard arduino Serial
 #define WATER_DEBUG
+
+#ifdef WATER_DEBUG
+# define LOG(...) \
+	Serial.println(__VA_ARGS__)
+#else
+# define LOG(...)
+#endif
+
+#endif
+
+#include <option.h>
+
+#define SEND_BUFFER_SIZE_BYTES 32
+#define RECEIVE_BUFFER_SIZE_BYTES 20
+
+namespace water
+{
 
 class WaterClient
 {
@@ -23,7 +37,7 @@ public:
 
 	struct LoginReply
 	{
-		enum class Status : byte
+		enum class Status : uint8_t
 		{
 			SUCCESS = 1,
 			INVALID_ID, // invalid UserId or invalid RfidId
@@ -36,6 +50,9 @@ public:
 		Option<Credit> creditAvail; // empty iff non-success status
 	};
 
+	typedef uint8_t RequestSeqNum; // used internally by class only
+
+#ifndef _WATER_SERVER
 	WaterClient(uint8_t controlPinNumber, HardwareSerial*, uint8_t slaveNum, uint32_t connectTimeoutSec);
 
 	// In every 'loop' call client code should call one of the following methods.
@@ -53,8 +70,6 @@ public:
 	// If strng contains valid hex number, then return value will be non-empty, otherwise it will be an empty option.
 	static Option<RfidId> CreateRfidIdFromStringInHex(String const &);
 
-	typedef uint8_t RequestSeqNum; // used internally by class only
-
 private:
 
 	template <typename RequestTypeT, typename RequestImplT>
@@ -65,6 +80,8 @@ private:
 	byte sendBuffer[SEND_BUFFER_SIZE_BYTES];
 	byte receiveBuffer[RECEIVE_BUFFER_SIZE_BYTES];
 	uint32_t timeoutSec;
+
+#endif
 
 	struct LoginByUserRequest
 	{
@@ -81,15 +98,11 @@ private:
 	Option<LoginByUserRequest> lastLoginByUser;
 	Option<LoginByRfidRequest> lastLoginByRfid;
 
+
 	union RequestImpl;
 	struct Request;
 };
 
-#ifdef WATER_DEBUG
-# define LOG(...) \
-	Serial.println(__VA_ARGS__)
-#else
-# define LOG(...)
-#endif
+} // ns water
 
 #endif

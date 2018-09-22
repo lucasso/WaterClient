@@ -8,8 +8,8 @@ namespace water
 
 enum class RequestType : uint8_t
 {
-	LOGIN_BY_USER = 1,
-	LOGIN_BY_RFID = 2
+	LOGIN_BY_USER = 11,
+	LOGIN_BY_RFID = 12
 };
 
 union WaterClient::RequestImpl
@@ -34,8 +34,8 @@ struct Reply
 	WaterClient::RequestSeqNum replySeqNumAtEnd;
 };
 
-#define REQUEST_ADDRESS 101
-#define REPLY_ADDRESS 102
+#define REQUEST_ADDRESS 51
+#define REPLY_ADDRESS 52
 
 }
 

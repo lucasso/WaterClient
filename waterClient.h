@@ -34,14 +34,14 @@ public:
 	typedef uint64_t Pin;
 	typedef uint64_t RfidId	;
 	typedef uint32_t Credit	;
+	typedef uint8_t SlaveId;
 
 	struct LoginReply
 	{
 		enum class Status : uint8_t
 		{
 			SUCCESS = 1,
-			INVALID_ID, // invalid UserId or invalid RfidId
-			INVALID_PIN,
+			NOT_FOUND, // invalid UserId or invalid RfidId or invalid Pin
 			TIMEOUT, // could not connect to server within connectTimeoutSec period
 			SERVER_INTERNAL_ERROR // connect to server succeeded, but e.g web service or database on server not working
 		};

@@ -73,6 +73,11 @@ WaterClient::logout(Credit const creditConsumed)
 	}
 }
 
+struct BufferWriter
+{
+	static void readWrite();
+};
+
 template <typename RequestTypeT, typename RequestImplT>
 WaterClient::LoginReply
 WaterClient::loginImpl(RequestTypeT const requestType, RequestImplT const & requestImpl, WaterClient::Credit const creditToConsume)
@@ -89,6 +94,8 @@ WaterClient::loginImpl(RequestTypeT const requestType, RequestImplT const & requ
 
 	RequestSeqNum const seqNumExpectedInReply = this->nextRequestId;
 	++ this->nextRequestId;
+
+	bool const writeResult = serializeRequest(rq, this->sendBuffer)
 
 	memcpy(this->sendBuffer, &rq, sizeof(rq));
 

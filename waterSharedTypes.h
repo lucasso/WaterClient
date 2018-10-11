@@ -30,28 +30,28 @@ struct WaterClient::Request
 template <class FunT> bool serializeRequest(WaterClient::Request & rq, char * buffer)
 {
 	uint32_t offset = 0;
-	FunT::readWrite(rq.requestSeqNumAtBegin, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer)[0]);
+	FunT::readWriteRequest(rq.requestSeqNumAtBegin, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer)[0]);
 	offset += sizeof(WaterClient::RequestSeqNum);
-	FunT::readWrite(rq.requestType, reinterpret_cast<water::RequestType*>(buffer+offset)[0]);
+	FunT::readWriteRequest(rq.requestType, reinterpret_cast<water::RequestType*>(buffer+offset)[0]);
 	offset += sizeof(water::RequestType);
 	switch (rq.requestType)
 	{
 	case water::RequestType::LOGIN_BY_USER:
-		FunT::readWrite(rq.impl.loginByUser.userId, reinterpret_cast<WaterClient::UserId*>(buffer+offset)[0]);
+		FunT::readWriteRequest(rq.impl.loginByUser.userId, reinterpret_cast<WaterClient::UserId*>(buffer+offset)[0]);
 		offset += sizeof(WaterClient::UserId);
-		FunT::readWrite(rq.impl.loginByUser.pin, reinterpret_cast<WaterClient::Pin*>(buffer+offset)[0]);
+		FunT::readWriteRequest(rq.impl.loginByUser.pin, reinterpret_cast<WaterClient::Pin*>(buffer+offset)[0]);
 		offset += sizeof(WaterClient::Pin);
 		break;
 	case water::RequestType::LOGIN_BY_RFID:
-		FunT::readWrite(rq.impl.loginByRfid.rfidId, reinterpret_cast<WaterClient::RfidId*>(buffer+offset)[0]);
+		FunT::readWriteRequest(rq.impl.loginByRfid.rfidId, reinterpret_cast<WaterClient::RfidId*>(buffer+offset)[0]);
 		offset += sizeof(WaterClient::RfidId);
 		break;
 	default:
 		return false;
 	}
-	FunT::readWrite(rq.consumeCredit, reinterpret_cast<WaterClient::Credit*>(buffer+offset)[0]);
+	FunT::readWriteRequest(rq.consumeCredit, reinterpret_cast<WaterClient::Credit*>(buffer+offset)[0]);
 	offset += sizeof(WaterClient::Credit);
-	FunT::readWrite(rq.requestSeqNumAtEnd, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer+offset)[0]);
+	FunT::readWriteRequest(rq.requestSeqNumAtEnd, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer+offset)[0]);
 	return true;
 }
 
@@ -61,6 +61,18 @@ struct Reply
 	WaterClient::LoginReply impl;
 	WaterClient::RequestSeqNum replySeqNumAtEnd;
 };
+
+template <class FunT> void serializeReply(Reply & rpl, char * buffer)
+{
+	uint32_t offset = 0;
+	FunT::readWriteReply(rpl.replySeqNumAtBegin, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer)[0]);
+	offset += sizeof(WaterClient::RequestSeqNum);
+	FunT::readWriteReply(rpl.impl.status, reinterpret_cast<WaterClient::LoginReply::Status*>(buffer+offset)[0]);
+	offset += sizeof(WaterClient::LoginReply::Status);
+	FunT::readWriteReply(rpl.impl.creditAvail, reinterpret_cast<WaterClient::Credit*>(buffer+offset)[0]);
+	offset += sizeof(WaterClient::Credit);
+	FunT::readWriteReply(rpl.replySeqNumAtEnd, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer)[0]);
+}
 
 #define REQUEST_ADDRESS 51
 #define REPLY_ADDRESS 52

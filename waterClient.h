@@ -47,13 +47,13 @@ public:
 		};
 
 		Status status;
-		Option<Credit> creditAvail; // empty iff non-success status
+		Credit creditAvail; // if non-success status then 0
 	};
 
 	typedef uint8_t RequestSeqNum; // used internally by class only
 
 #ifndef _WATER_SERVER
-	WaterClient(uint8_t controlPinNumber, HardwareSerial*, uint8_t slaveNum, uint32_t connectTimeoutSec);
+	WaterClient(uint8_t controlPinNumber, HardwareSerial*, SlaveId slaveNum, uint32_t connectTimeoutSec);
 
 	// In every 'loop' call client code should call one of the following methods.
 	// If client does not need to log in or log out currently, then keepCommunicationAlive should be repeated in every 'loop' call.

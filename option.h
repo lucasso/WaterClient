@@ -1,6 +1,9 @@
 #ifndef _LUCASSO_OPTION_H_
 #define _LUCASSO_OPTION_H_
 
+namespace water
+{
+
 struct EmptyOptionException {};
 
 template <class T>
@@ -24,5 +27,6 @@ public:
 	bool isEmpty() const { return ! this->exists; }
 };
 
+}
 
 #endif /* _LUCASSO_OPTION_H_ */

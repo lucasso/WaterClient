@@ -77,8 +77,8 @@ private:
 
 	ModbusRTUSlave rtu;
 	RequestSeqNum nextRequestId;
-	byte sendBuffer[SEND_BUFFER_SIZE_BYTES];
-	byte receiveBuffer[RECEIVE_BUFFER_SIZE_BYTES];
+	char sendBuffer[SEND_BUFFER_SIZE_BYTES];
+	char receiveBuffer[RECEIVE_BUFFER_SIZE_BYTES];
 	uint32_t timeoutSec;
 
 #endif

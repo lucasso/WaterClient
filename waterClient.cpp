@@ -75,7 +75,10 @@ WaterClient::logout(Credit const creditConsumed)
 
 struct BufferWriter
 {
-	static void readWrite();
+	template <class T>
+	static void readWriteRequest(T inMemory, T & inBuffer) { inBuffer = inMemory; }
+	template <class T>
+	static void readWriteReply(T & inMemory, T inBuffer) { inMemory = inBuffer; }
 };
 
 template <typename RequestTypeT, typename RequestImplT>
@@ -95,28 +98,27 @@ WaterClient::loginImpl(RequestTypeT const requestType, RequestImplT const & requ
 	RequestSeqNum const seqNumExpectedInReply = this->nextRequestId;
 	++ this->nextRequestId;
 
-	bool const writeResult = serializeRequest(rq, this->sendBuffer)
-
-	memcpy(this->sendBuffer, &rq, sizeof(rq));
+	bool const writeResult = serializeRequest<BufferWriter>(rq, static_cast<char*>(this->sendBuffer));
 
 	uint32_t attemptsLeft = this->timeoutSec;
 
 	while (--attemptsLeft > 0)
 	{
 		this->rtu.process();
-		Reply* reply = reinterpret_cast<Reply*>(this->receiveBuffer);
-		if (reply->replySeqNumAtBegin == seqNumExpectedInReply && reply->replySeqNumAtEnd == seqNumExpectedInReply)
+		Reply reply;
+		serializeReply<BufferWriter>(reply, static_cast<char*>(this->receiveBuffer));
+
+		if (reply.replySeqNumAtBegin == seqNumExpectedInReply && reply.replySeqNumAtEnd == seqNumExpectedInReply)
 		{
 			LOG("reply received");
-			LOG(static_cast<int>(reply->impl.status));
-			if (reply->impl.creditAvail.hasSome()) { LOG(reply->impl.creditAvail.getValue()); }
-
-			return reply->impl;
+			LOG(static_cast<int>(reply.impl.status));
+			LOG(reply.impl.creditAvail);
+			return reply.impl;
 		}
 	}
 
 	LOG("waiting for reply timed out");
-	return LoginReply{LoginReply::Status::TIMEOUT, Option<Credit>()};
+	return LoginReply{LoginReply::Status::TIMEOUT, 0};
 
 }
 

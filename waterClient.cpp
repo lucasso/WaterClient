@@ -10,7 +10,7 @@ WaterClient::WaterClient(uint8_t const controlPinNumber, HardwareSerial* hwSeria
 {
 	// adding areas
 	this->rtu.addWordArea(REQUEST_ADDRESS, reinterpret_cast<u16*>(this->sendBuffer), SEND_BUFFER_SIZE_BYTES/2);
-	this->rtu.addWordArea(REPLY_ADDRESS, reinterpret_cast<u16*>(this->receiveBuffer), RECEIVE_BUFFER_SIZE_BYTES/2);
+	this->rtu.addWordArea(REPLY_ADDRESS, reinterpret_cast<u16*>(this->receiveBuffer), SEND_BUFFER_SIZE_BYTES/2);
 
 	this->rtu.begin(9600);
 
@@ -26,7 +26,9 @@ WaterClient::loginByUser(UserId const userId, Pin const pin)
 	impl.loginByUser.userId = userId;
 	impl.loginByUser.pin = pin;
 
-	return this->loginImpl(RequestType::LOGIN_BY_USER, impl, 0);
+	auto rpl = this->loginImpl(RequestType::LOGIN_BY_USER, impl, 0);
+	if (rpl.status == WaterClient::LoginReply::Status::SUCCESS) this->lastLoginByUser = impl.loginByUser;
+	return rpl;
 }
 
 WaterClient::LoginReply
@@ -35,8 +37,9 @@ WaterClient::loginByRfid(RfidId const rfid)
 	RequestImpl impl;
 	impl.loginByRfid.rfidId = rfid;
 
-	return this->loginImpl(RequestType::LOGIN_BY_RFID, impl, 0);
-
+	auto rpl = this->loginImpl(RequestType::LOGIN_BY_RFID, impl, 0);
+	if (rpl.status == WaterClient::LoginReply::Status::SUCCESS) this->lastLoginByRfid = impl.loginByRfid;
+	return rpl;
 }
 
 void
@@ -55,7 +58,7 @@ WaterClient::logout(Credit const creditConsumed)
 		RequestImpl impl;
 		impl.loginByRfid = this->lastLoginByRfid.getValue();
 		this->loginImpl(RequestType::LOGIN_BY_RFID, impl, creditConsumed);
-
+		this->lastLoginByRfid = Option<LoginByRfidRequest>();
 	}
 	else if (this->lastLoginByUser.hasSome())
 	{
@@ -66,6 +69,7 @@ WaterClient::logout(Credit const creditConsumed)
 		RequestImpl impl;
 		impl.loginByUser = this->lastLoginByUser.getValue();
 		this->loginImpl(RequestType::LOGIN_BY_USER, impl, creditConsumed);
+		this->lastLoginByUser = Option<LoginByUserRequest>();
 	}
 	else
 	{

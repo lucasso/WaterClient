@@ -100,9 +100,9 @@ WaterClient::loginImpl(RequestTypeT const requestType, RequestImplT const & requ
 
 	bool const writeResult = serializeRequest<BufferWriter>(rq, static_cast<char*>(this->sendBuffer));
 
-	uint32_t attemptsLeft = this->timeoutSec;
+	unsigned long lastrecv = millis();
 
-	while (--attemptsLeft > 0)
+	while (true)
 	{
 		this->rtu.process();
 		Reply reply;
@@ -115,6 +115,9 @@ WaterClient::loginImpl(RequestTypeT const requestType, RequestImplT const & requ
 			LOG(reply.impl.creditAvail);
 			return reply.impl;
 		}
+
+		unsigned long currentMillis = millis();
+		if ((currentMillis > this->timeoutSec * 1000 + lastrecv) || currentMillis < lastrecv) break;
 	}
 
 	LOG("waiting for reply timed out");

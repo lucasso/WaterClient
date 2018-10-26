@@ -74,8 +74,8 @@ template <class FunT> void serializeReply(Reply & rpl, char * buffer)
 	FunT::readWriteReply(rpl.replySeqNumAtEnd, reinterpret_cast<WaterClient::RequestSeqNum*>(buffer)[0]);
 }
 
-#define REQUEST_ADDRESS 51
-#define REPLY_ADDRESS 52
+#define REQUEST_ADDRESS 5100
+#define REPLY_ADDRESS 5200
 
 }
 
